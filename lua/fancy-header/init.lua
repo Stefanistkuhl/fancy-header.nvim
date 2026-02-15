@@ -86,52 +86,142 @@ local function apply_highlights(bufnr)
 		end
 
 		if is_header_line then
-			-- Left border
-			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 1, hl_group = "H42Box" })
-			-- Right border
-			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, line_len - 1, { end_col = line_len, hl_group = "H42Box" })
+			-- Borders with filetype-specific offsets
+			if ft == "makefile" then
+				-- Makefile: single # border
+				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 1, hl_group = "H42Box" })
+				vim.api.nvim_buf_set_extmark(
+					bufnr,
+					ns_id,
+					row,
+					line_len - 1,
+					{ end_col = line_len, hl_group = "H42Box" }
+				)
+				local content_start = 1
+				local content_end = line_len - 1
 
-			if row == 0 or row == 10 then
-				-- Top and bottom lines all box color
-				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 1, { end_col = line_len - 1, hl_group = "H42Box" })
-			elseif row ~= 1 and row ~= 9 then
-				-- Content rows (2-8)
-				local text_hl = nil
-				if row == 3 then
-					text_hl = "H42Filename"
-				elseif row == 5 then
-					text_hl = "H42Author"
-				elseif row == 7 or row == 8 then
-					text_hl = "H42Date"
-				end
-
-				local logo_start_col = nil
-				local _, gap_end = string.find(line, "%s%s%s%s+[%:%+#]")
-				if gap_end then
-					logo_start_col = gap_end - 1
-				end
-
-				if logo_start_col then
-					if text_hl then
-						vim.api.nvim_buf_set_extmark(
-							bufnr,
-							ns_id,
-							row,
-							1,
-							{ end_col = logo_start_col, hl_group = text_hl }
-						)
-					end
-
-					local logo_idx = math.max(0, math.min(6, row - 2))
+				if row == 0 or row == 10 then
+					-- Top and bottom lines all box color
 					vim.api.nvim_buf_set_extmark(
 						bufnr,
 						ns_id,
 						row,
-						logo_start_col,
-						{ end_col = line_len - 1, hl_group = "H42Logo" .. logo_idx }
+						content_start,
+						{ end_col = content_end, hl_group = "H42Box" }
 					)
-				elseif text_hl then
-					vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 1, { end_col = line_len - 1, hl_group = text_hl })
+				elseif row ~= 1 and row ~= 9 then
+					-- Content rows (2-8)
+					local text_hl = nil
+					if row == 3 then
+						text_hl = "H42Filename"
+					elseif row == 5 then
+						text_hl = "H42Author"
+					elseif row == 7 or row == 8 then
+						text_hl = "H42Date"
+					end
+
+					local logo_start_col = nil
+					local _, gap_end = string.find(line, "%s%s%s%s+[%:%+#]")
+					if gap_end then
+						logo_start_col = gap_end - 1
+					end
+
+					if logo_start_col then
+						if text_hl then
+							vim.api.nvim_buf_set_extmark(
+								bufnr,
+								ns_id,
+								row,
+								content_start,
+								{ end_col = logo_start_col, hl_group = text_hl }
+							)
+						end
+
+						local logo_idx = math.max(0, math.min(6, row - 2))
+						vim.api.nvim_buf_set_extmark(
+							bufnr,
+							ns_id,
+							row,
+							logo_start_col,
+							{ end_col = content_end, hl_group = "H42Logo" .. logo_idx }
+						)
+					elseif text_hl then
+						vim.api.nvim_buf_set_extmark(
+							bufnr,
+							ns_id,
+							row,
+							content_start,
+							{ end_col = content_end, hl_group = text_hl }
+						)
+					end
+				end
+			else
+				-- C file: /* */ border
+				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 2, hl_group = "H42Box" })
+				vim.api.nvim_buf_set_extmark(
+					bufnr,
+					ns_id,
+					row,
+					line_len - 2,
+					{ end_col = line_len, hl_group = "H42Box" }
+				)
+				local content_start = 2
+				local content_end = line_len - 2
+
+				if row == 0 or row == 10 then
+					-- Top and bottom lines all box color
+					vim.api.nvim_buf_set_extmark(
+						bufnr,
+						ns_id,
+						row,
+						content_start,
+						{ end_col = content_end, hl_group = "H42Box" }
+					)
+				elseif row ~= 1 and row ~= 9 then
+					-- Content rows (2-8)
+					local text_hl = nil
+					if row == 3 then
+						text_hl = "H42Filename"
+					elseif row == 5 then
+						text_hl = "H42Author"
+					elseif row == 7 or row == 8 then
+						text_hl = "H42Date"
+					end
+
+					local logo_start_col = nil
+					local _, gap_end = string.find(line, "%s%s%s%s+[%:%+#]")
+					if gap_end then
+						logo_start_col = gap_end - 1
+					end
+
+					if logo_start_col then
+						if text_hl then
+							vim.api.nvim_buf_set_extmark(
+								bufnr,
+								ns_id,
+								row,
+								content_start,
+								{ end_col = logo_start_col, hl_group = text_hl }
+							)
+						end
+
+						local logo_idx = math.max(0, math.min(6, row - 2))
+						vim.api.nvim_buf_set_extmark(
+							bufnr,
+							ns_id,
+							row,
+							logo_start_col,
+							{ end_col = content_end, hl_group = "H42Logo" .. logo_idx }
+						)
+					elseif text_hl then
+						vim.api.nvim_buf_set_extmark(
+							bufnr,
+							ns_id,
+							row,
+							content_start,
+							{ end_col = content_end, hl_group = text_hl }
+						)
+					end
 				end
 			end
 		end
