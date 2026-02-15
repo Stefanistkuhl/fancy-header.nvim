@@ -64,7 +64,7 @@ local function apply_highlights(bufnr)
 	-- Check for valid header based on filetype
 	local is_valid_header = false
 	if ft == "makefile" then
-		is_valid_header = #lines >= 11 and lines[1]:match("^#%s*%*+%s*#$")
+		is_valid_header = #lines >= 11 and lines[1]:match("^#%s*%*.*%*%s*#$")
 	else
 		is_valid_header = #lines >= 11 and lines[1]:match("^/%*%s*%*+%s*%*/$")
 	end
