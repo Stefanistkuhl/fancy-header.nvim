@@ -63,7 +63,7 @@ local function apply_highlights(bufnr)
 
 	-- Check for valid header based on filetype
 	local is_valid_header = false
-	if ft == "makefile" then
+	if ft == "make" then
 		is_valid_header = #lines >= 11 and lines[1]:match("^#%s*%*.*%*%s*#$")
 	else
 		is_valid_header = #lines >= 11 and lines[1]:match("^/%*%s*%*+%s*%*/$")
@@ -79,7 +79,7 @@ local function apply_highlights(bufnr)
 
 		-- Check if line is part of header (starts and ends with # or /*)
 		local is_header_line = false
-		if ft == "makefile" then
+		if ft == "make" then
 			is_header_line = line_len >= 5 and line:match("^#") and line:match("#$")
 		else
 			is_header_line = line_len >= 5 and line:match("^/%*") and line:match("%*/$")
@@ -87,7 +87,7 @@ local function apply_highlights(bufnr)
 
 		if is_header_line then
 			-- Borders with filetype-specific offsets
-			if ft == "makefile" then
+			if ft == "make" then
 				-- Makefile: single # border
 				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 1, hl_group = "H42Box" })
 				vim.api.nvim_buf_set_extmark(
