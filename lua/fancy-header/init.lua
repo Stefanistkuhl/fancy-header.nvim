@@ -30,7 +30,6 @@ local function interpolate_color(c1, c2, factor)
 	local b = b1 + (b2 - b1) * factor
 	return rgb_to_hex(math.floor(r + 0.5), math.floor(g + 0.5), math.floor(b + 0.5))
 end
--- -------------------------------
 
 local function setup_highlights(colors)
 	vim.api.nvim_set_hl(0, "H42Box", { fg = colors.box.fg })
@@ -60,8 +59,17 @@ local function apply_highlights(bufnr)
 	vim.api.nvim_buf_clear_namespace(bufnr, ns_id, 0, -1)
 
 	local lines = vim.api.nvim_buf_get_lines(bufnr, 0, 11, false)
+	local ft = vim.bo[bufnr].filetype
 
-	if #lines < 11 or not lines[1]:match("^/%*%s*%*+%s*%*/$") then
+	-- Check for valid header based on filetype
+	local is_valid_header = false
+	if ft == "makefile" then
+		is_valid_header = #lines >= 11 and lines[1]:match("^#%s*%*+%s*#$")
+	else
+		is_valid_header = #lines >= 11 and lines[1]:match("^/%*%s*%*+%s*%*/$")
+	end
+
+	if not is_valid_header then
 		return
 	end
 
@@ -69,13 +77,25 @@ local function apply_highlights(bufnr)
 		local row = i - 1
 		local line_len = #line
 
-		if line_len >= 5 and line:match("^/%*") and line:match("%*/$") then
-			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 2, hl_group = "H42Box" })
-			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, line_len - 2, { end_col = line_len, hl_group = "H42Box" })
+		-- Check if line is part of header (starts and ends with # or /*)
+		local is_header_line = false
+		if ft == "makefile" then
+			is_header_line = line_len >= 5 and line:match("^#") and line:match("#$")
+		else
+			is_header_line = line_len >= 5 and line:match("^/%*") and line:match("%*/$")
+		end
+
+		if is_header_line then
+			-- Left border
+			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 0, { end_col = 1, hl_group = "H42Box" })
+			-- Right border
+			vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, line_len - 1, { end_col = line_len, hl_group = "H42Box" })
 
 			if row == 0 or row == 10 then
-				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 2, { end_col = line_len - 2, hl_group = "H42Box" })
+				-- Top and bottom lines all box color
+				vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 1, { end_col = line_len - 1, hl_group = "H42Box" })
 			elseif row ~= 1 and row ~= 9 then
+				-- Content rows (2-8)
 				local text_hl = nil
 				if row == 3 then
 					text_hl = "H42Filename"
@@ -97,22 +117,21 @@ local function apply_highlights(bufnr)
 							bufnr,
 							ns_id,
 							row,
-							2,
+							1,
 							{ end_col = logo_start_col, hl_group = text_hl }
 						)
 					end
 
-					-- Apply the specific gradient color for this row
 					local logo_idx = math.max(0, math.min(6, row - 2))
 					vim.api.nvim_buf_set_extmark(
 						bufnr,
 						ns_id,
 						row,
 						logo_start_col,
-						{ end_col = line_len - 2, hl_group = "H42Logo" .. logo_idx }
+						{ end_col = line_len - 1, hl_group = "H42Logo" .. logo_idx }
 					)
 				elseif text_hl then
-					vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 2, { end_col = line_len - 2, hl_group = text_hl })
+					vim.api.nvim_buf_set_extmark(bufnr, ns_id, row, 1, { end_col = line_len - 1, hl_group = text_hl })
 				end
 			end
 		end
