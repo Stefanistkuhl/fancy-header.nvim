@@ -228,8 +228,13 @@ local function apply_highlights(bufnr)
 	end
 end
 
-function M.refresh()
-	local bufnr = vim.api.nvim_get_current_buf()
+function M.refresh(args)
+	local bufnr = (args and args.buf) or vim.api.nvim_get_current_buf()
+
+	if vim.v.exiting ~= vim.NIL or not vim.api.nvim_buf_is_valid(bufnr) or not vim.api.nvim_buf_is_loaded(bufnr) then
+		return
+	end
+
 	apply_highlights(bufnr)
 end
 
