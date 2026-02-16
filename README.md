@@ -15,7 +15,7 @@ To install with [lazy.nvim](https://github.com/folke/lazy.nvim):
 
 ```lua
 {
-    "Stefanistkuhl/fancy-header.nvim",
+    "0xveya/fancy-header.nvim",
     ft = { "c", "cpp", "h" },
 
     -- Configuration (Rosé Pine example)
